@@ -1,21 +1,45 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from app.api.routes import resume
+from app.core.config import settings
+from app.core.database import init_db
 
-app = FastAPI()
 
-# CORS (allow all for now)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    init_db()
+    print(f"✅ ResumeAI backend running — {settings.APP_NAME} v{settings.VERSION}")
+    yield
+    # Shutdown
+    print("🛑 Shutting down ResumeAI backend")
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.VERSION,
+    description="AI Resume Analyzer + Job Matcher API",
+    lifespan=lifespan,
+)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-def home():
-    return {"message": "Backend running"}
+# Routes
+app.include_router(resume.router, prefix="/api/resume", tags=["Resume"])
 
-@app.get("/api/health")
-def health():
-    return {"status": "online"}
+
+@app.get("/api/health", tags=["Health"])
+async def health():
+    return {
+        "status": "online",
+        "app": settings.APP_NAME,
+        "version": settings.VERSION,
+    }
