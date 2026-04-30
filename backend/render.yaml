@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: resumeai-backend
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      python -m spacy download en_core_web_sm
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_NAME
+        value: ResumeAI
+      - key: VERSION
+        value: 1.0.0
+      - key: DEBUG
+        value: false
+      - key: DATABASE_URL
+        value: sqlite:///./resumeai.db
+      - key: SPACY_MODEL
+        value: en_core_web_sm
+      - key: MAX_FILE_SIZE_MB
+        value: 10
+      - key: UPLOAD_DIR
+        value: uploads
