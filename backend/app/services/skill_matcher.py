@@ -4,6 +4,7 @@ from app.services.parser import SKILLS_DB
 
 _model = None
 
+
 def _get_model():
     global _model
     if _model is None:
@@ -12,8 +13,6 @@ def _get_model():
         print("✅ Sentence-transformer model loaded")
     return _model
 
-
-# ── Job Role Definitions ─────────────────────────────────
 
 JOB_ROLES = {
     "Business Analyst": {
@@ -176,27 +175,24 @@ JOB_ROLES = {
     },
 }
 
-
-# ── Role Skills Map for missing skills ───────────────────
-
 ROLE_SKILLS_MAP = {
-    "business analyst":        ["sql", "excel", "tableau", "power bi", "agile", "jira", "scrum", "data analysis", "python", "stakeholder management"],
-    "data analyst":            ["sql", "python", "excel", "tableau", "power bi", "pandas", "numpy", "statistics", "r"],
-    "frontend developer":      ["react", "javascript", "typescript", "html", "css", "tailwind", "git", "next.js", "vite"],
-    "backend developer":       ["python", "node.js", "postgresql", "rest api", "docker", "git", "fastapi", "django"],
-    "full stack developer":    ["react", "node.js", "python", "postgresql", "docker", "git", "rest api", "typescript"],
-    "software engineer":       ["python", "java", "git", "sql", "docker", "system design", "rest api", "agile"],
-    "data scientist":          ["python", "machine learning", "pandas", "numpy", "scikit-learn", "sql", "statistics", "tensorflow"],
+    "business analyst":         ["sql", "excel", "tableau", "power bi", "agile", "jira", "scrum", "data analysis", "python", "stakeholder management"],
+    "data analyst":             ["sql", "python", "excel", "tableau", "power bi", "pandas", "numpy", "statistics", "r"],
+    "frontend developer":       ["react", "javascript", "typescript", "html", "css", "tailwind", "git", "next.js", "vite"],
+    "backend developer":        ["python", "node.js", "postgresql", "rest api", "docker", "git", "fastapi", "django"],
+    "full stack developer":     ["react", "node.js", "python", "postgresql", "docker", "git", "rest api", "typescript"],
+    "software engineer":        ["python", "java", "git", "sql", "docker", "system design", "rest api", "agile"],
+    "data scientist":           ["python", "machine learning", "pandas", "numpy", "scikit-learn", "sql", "statistics", "tensorflow"],
     "machine learning engineer":["python", "tensorflow", "pytorch", "scikit-learn", "docker", "aws", "mlops", "nlp"],
-    "devops engineer":         ["docker", "kubernetes", "aws", "ci/cd", "terraform", "linux", "bash", "github actions"],
-    "product manager":         ["agile", "jira", "scrum", "sql", "figma", "data analysis", "stakeholder management"],
-    "ux designer":             ["figma", "user research", "wireframing", "prototyping", "adobe xd", "html", "css"],
-    "project manager":         ["agile", "scrum", "jira", "risk management", "stakeholder management", "documentation"],
-    "cloud architect":         ["aws", "azure", "gcp", "terraform", "kubernetes", "docker", "system design", "ci/cd"],
-    "financial analyst":       ["excel", "sql", "tableau", "power bi", "python", "financial modeling", "forecasting"],
-    "marketing manager":       ["seo", "google analytics", "social media", "hubspot", "content marketing", "crm", "a/b testing"],
-    "sales executive":         ["crm", "salesforce", "lead generation", "negotiation", "account management", "b2b"],
-    "mobile developer":        ["swift", "kotlin", "flutter", "react", "rest api", "git", "ios", "android"],
+    "devops engineer":          ["docker", "kubernetes", "aws", "ci/cd", "terraform", "linux", "bash", "github actions"],
+    "product manager":          ["agile", "jira", "scrum", "sql", "figma", "data analysis", "stakeholder management"],
+    "ux designer":              ["figma", "user research", "wireframing", "prototyping", "adobe xd", "html", "css"],
+    "project manager":          ["agile", "scrum", "jira", "risk management", "stakeholder management", "documentation"],
+    "cloud architect":          ["aws", "azure", "gcp", "terraform", "kubernetes", "docker", "system design", "ci/cd"],
+    "financial analyst":        ["excel", "sql", "tableau", "power bi", "python", "financial modeling", "forecasting"],
+    "marketing manager":        ["seo", "google analytics", "social media", "hubspot", "content marketing", "crm", "a/b testing"],
+    "sales executive":          ["crm", "salesforce", "lead generation", "negotiation", "account management", "b2b"],
+    "mobile developer":         ["swift", "kotlin", "flutter", "react", "rest api", "git", "ios", "android"],
 }
 
 
@@ -204,8 +200,7 @@ def _normalize_role(role: str) -> str:
     return role.lower().strip()
 
 
-def _find_closest_role(target_job: str) -> str | None:
-    """Find the closest matching role key from target_job string."""
+def _find_closest_role(target_job: str):
     target_lower = _normalize_role(target_job)
     for role_key in ROLE_SKILLS_MAP:
         if role_key in target_lower or target_lower in role_key:
@@ -218,7 +213,8 @@ def _find_closest_role(target_job: str) -> str | None:
 
 
 def compute_semantic_similarity(text1: str, text2: str) -> float:
-    embeddings = _model.encode([text1, text2], convert_to_tensor=True)
+    model = _get_model()
+    embeddings = model.encode([text1, text2], convert_to_tensor=True)
     score = util.cos_sim(embeddings[0], embeddings[1])
     return float(score.item())
 
@@ -229,38 +225,30 @@ def match_job_role(
     job_description: str = "",
     target_job: str = "",
 ) -> dict:
-    """
-    Match resume to job roles.
-    If target_job provided → compute match score specifically for that role.
-    """
     skills_text = " ".join(skills_found)
     combined    = f"{resume_text[:1500]} {skills_text}"
     found_set   = set(s.lower() for s in skills_found)
 
     role_scores = {}
-
     for role, data in JOB_ROLES.items():
-        role_keywords  = set(data["keywords"])
-        overlap        = len(found_set & role_keywords)
-        keyword_score  = min(1.0, overlap / max(len(role_keywords) * 0.6, 1))
+        role_keywords = set(data["keywords"])
+        overlap       = len(found_set & role_keywords)
+        keyword_score = min(1.0, overlap / max(len(role_keywords) * 0.6, 1))
         semantic_score = compute_semantic_similarity(combined, data["description"])
-        final_score    = (semantic_score * 0.6) + (keyword_score * 0.4)
+        final_score   = (semantic_score * 0.6) + (keyword_score * 0.4)
         role_scores[role] = round(final_score * 100, 1)
 
-    # ── Target job specific match ─────────────────────────
     target_match = None
     best_role    = max(role_scores, key=role_scores.get)
 
     if target_job.strip():
-        # Check if target_job maps to a known role
         closest_key = _find_closest_role(target_job)
 
         if closest_key:
-            role_keywords  = set(ROLE_SKILLS_MAP[closest_key])
-            overlap        = len(found_set & role_keywords)
-            keyword_score  = min(1.0, overlap / max(len(role_keywords) * 0.5, 1))
+            role_keywords = set(ROLE_SKILLS_MAP[closest_key])
+            overlap       = len(found_set & role_keywords)
+            keyword_score = min(1.0, overlap / max(len(role_keywords) * 0.5, 1))
 
-            # Semantic match against target role description
             known_role_name = next(
                 (r for r in JOB_ROLES if _normalize_role(r) == closest_key), None
             )
@@ -272,25 +260,22 @@ def match_job_role(
                 semantic_score = compute_semantic_similarity(combined, target_job)
 
             target_match = round(min(100, (semantic_score * 0.6 + keyword_score * 0.4) * 100), 1)
-
         else:
-            # Unknown role — semantic match against target job title + JD
-            ref_text     = f"{target_job} {job_description[:500]}" if job_description else target_job
+            ref_text = f"{target_job} {job_description[:500]}" if job_description else target_job
             semantic_score = compute_semantic_similarity(combined, ref_text)
             role_keywords  = set()
             if job_description:
-                jd_lower  = job_description.lower()
+                jd_lower = job_description.lower()
                 role_keywords = {
                     skill for skill in SKILLS_DB
                     if re.search(r"\b" + re.escape(skill) + r"\b", jd_lower)
                 }
-            overlap      = len(found_set & role_keywords) if role_keywords else 0
-            kw_score     = min(1.0, overlap / max(len(role_keywords) * 0.5, 1)) if role_keywords else 0
+            overlap  = len(found_set & role_keywords) if role_keywords else 0
+            kw_score = min(1.0, overlap / max(len(role_keywords) * 0.5, 1)) if role_keywords else 0
             target_match = round(min(100, (semantic_score * 0.7 + kw_score * 0.3) * 100), 1)
 
         best_role = target_job
 
-    # ── JD match override ─────────────────────────────────
     jd_match = None
     if job_description.strip():
         jd_semantic = compute_semantic_similarity(combined, job_description[:2000])
@@ -299,8 +284,8 @@ def match_job_role(
             skill for skill in SKILLS_DB
             if re.search(r"\b" + re.escape(skill) + r"\b", jd_lower)
         }
-        jd_overlap  = len(found_set & jd_skills) / max(len(jd_skills), 1)
-        jd_match    = round(min(100, (jd_semantic * 0.65 + jd_overlap * 0.35) * 100), 1)
+        jd_overlap = len(found_set & jd_skills) / max(len(jd_skills), 1)
+        jd_match   = round(min(100, (jd_semantic * 0.65 + jd_overlap * 0.35) * 100), 1)
 
     final_score = jd_match if jd_match else (target_match if target_match else role_scores[best_role])
 
@@ -313,7 +298,6 @@ def match_job_role(
 
 
 def get_role_recommendations(role_scores: dict, target_job: str = "", top_n: int = 3) -> list:
-    """Return top N role matches. If target_job given, ensure it appears first."""
     sorted_roles = sorted(role_scores.items(), key=lambda x: x[1], reverse=True)
     results = [{"role": role, "score": score} for role, score in sorted_roles[:top_n]]
 
