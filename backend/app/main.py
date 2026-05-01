@@ -8,12 +8,9 @@ from app.core.database import init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     init_db()
     print(f"✅ ResumeAI backend running — {settings.APP_NAME} v{settings.VERSION}")
     yield
-    # Shutdown
-    print("🛑 Shutting down ResumeAI backend")
 
 
 app = FastAPI(
@@ -23,7 +20,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -32,7 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routes
 app.include_router(resume.router, prefix="/api/resume", tags=["Resume"])
 
 
