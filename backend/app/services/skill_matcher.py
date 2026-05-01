@@ -2,9 +2,15 @@ import re
 from sentence_transformers import SentenceTransformer, util
 from app.services.parser import SKILLS_DB
 
-print("⏳ Loading sentence-transformer model...")
-_model = SentenceTransformer("all-MiniLM-L6-v2")
-print("✅ Sentence-transformer model loaded")
+_model = None
+
+def _get_model():
+    global _model
+    if _model is None:
+        print("⏳ Loading sentence-transformer model...")
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        print("✅ Sentence-transformer model loaded")
+    return _model
 
 
 # ── Job Role Definitions ─────────────────────────────────
