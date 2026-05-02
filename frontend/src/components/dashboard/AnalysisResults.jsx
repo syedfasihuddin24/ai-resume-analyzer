@@ -174,7 +174,7 @@ export default function AnalysisResults({ results, onReset }) {
 
   const handleDownload = async () => {
     try {
-      const res  = await fetch('/api/resume/report', {
+      const res = await fetch('https://resumeai-backend-my56.onrender.com/api/resume/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(results),
