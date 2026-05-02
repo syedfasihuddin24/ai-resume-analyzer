@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || '/api'
+const BASE_URL = 'https://resumeai-backend-my56.onrender.com/api'
 
 export async function analyzeResume(file, jobDescription = '', targetJob = '') {
   const formData = new FormData()
@@ -6,20 +6,33 @@ export async function analyzeResume(file, jobDescription = '', targetJob = '') {
   if (jobDescription.trim()) formData.append('job_description', jobDescription.trim())
   if (targetJob.trim())      formData.append('target_job', targetJob.trim())
 
-  const response = await fetch(`${BASE_URL}/resume/analyze`, {
-    method: 'POST',
-    body: formData,
-  })
+  const controller = new AbortController()
+  const timeout    = setTimeout(() => controller.abort(), 120000) // 2 min timeout
 
-  if (!response.ok) {
-    let message = 'Analysis failed. Please try again.'
-    try {
-      const err = await response.json()
-      message = err.detail || err.message || message
-    } catch { }
-    throw new Error(message)
+  try {
+    const response = await fetch(`${BASE_URL}/resume/analyze`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    })
+    clearTimeout(timeout)
+
+    if (!response.ok) {
+      let message = 'Analysis failed. Please try again.'
+      try {
+        const err = await response.json()
+        message = err.detail || err.message || message
+      } catch { }
+      throw new Error(message)
+    }
+    return response.json()
+  } catch (err) {
+    clearTimeout(timeout)
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out. The server may be waking up — please try again in 30 seconds.')
+    }
+    throw err
   }
-  return response.json()
 }
 
 export async function downloadReport(results) {
