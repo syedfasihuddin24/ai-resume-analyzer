@@ -1,5 +1,15 @@
 const BASE_URL = 'https://resumeai-backend-my56.onrender.com/api'
 
+// Pre-warm the backend as soon as possible
+export async function warmUpBackend() {
+  try {
+    await fetch(`${BASE_URL}/health`)
+    console.log('✅ Backend warmed up')
+  } catch {
+    // silent
+  }
+}
+
 export async function analyzeResume(file, jobDescription = '', targetJob = '') {
   const formData = new FormData()
   formData.append('file', file)
@@ -7,7 +17,7 @@ export async function analyzeResume(file, jobDescription = '', targetJob = '') {
   if (targetJob.trim())      formData.append('target_job', targetJob.trim())
 
   const controller = new AbortController()
-  const timeout    = setTimeout(() => controller.abort(), 120000) // 2 min timeout
+  const timeout    = setTimeout(() => controller.abort(), 180000) // 3 min timeout
 
   try {
     const response = await fetch(`${BASE_URL}/resume/analyze`, {
@@ -29,7 +39,7 @@ export async function analyzeResume(file, jobDescription = '', targetJob = '') {
   } catch (err) {
     clearTimeout(timeout)
     if (err.name === 'AbortError') {
-      throw new Error('Request timed out. The server may be waking up — please try again in 30 seconds.')
+      throw new Error('The server is still waking up. Please wait 30 seconds and try again.')
     }
     throw err
   }
