@@ -42,10 +42,18 @@ export default function DashboardPage() {
   const [jobDescription, setJobDescription] = useState('')
   const [targetJob, setTargetJob] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [backendReady, setBackendReady] = useState(false)
+  const [warming, setWarming] = useState(true)
 
-  const filteredRoles = POPULAR_ROLES.filter(r =>
-    r.toLowerCase().includes(targetJob.toLowerCase()) && targetJob.length > 0
-  )
+  useEffect(() => {
+    const warm = async () => {
+      setWarming(true)
+      await warmUpBackend()
+      setBackendReady(true)
+      setWarming(false)
+    }
+    warm()
+  }, [])
 
   const handleUpload = async (file) => {
     if (!targetJob.trim()) {
