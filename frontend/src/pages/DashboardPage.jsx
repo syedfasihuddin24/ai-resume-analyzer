@@ -1,5 +1,6 @@
 import { analyzeResume, warmUpBackend } from '../services/api'
 import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Brain, ArrowLeft, Briefcase } from 'lucide-react'
@@ -169,6 +170,42 @@ export default function DashboardPage() {
                   and get an instant AI-powered compatibility report.
                 </p>
               </div>
+
+              {/* Warming banner */}
+              {warming && (
+                <motion.div
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  style={{
+                    marginBottom: 20, padding: '12px 20px', borderRadius: 10,
+                    background: 'rgba(250,220,220,0.07)',
+                    border: '1px solid rgba(250,220,220,0.15)',
+                    color: '#bfb6b0', fontSize: 13, textAlign: 'center',
+                    fontFamily: 'Inter, sans-serif', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', gap: 10,
+                  }}>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                    style={{ width: 14, height: 14, borderRadius: '50%',
+                      border: '2px solid rgba(250,220,220,0.2)',
+                      borderTopColor: '#fadcdc' }}
+                  />
+                  Waking up AI engine — this takes ~30 seconds on first load…
+                </motion.div>
+              )}
+              {backendReady && !warming && (
+                <motion.div
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  style={{
+                    marginBottom: 20, padding: '10px 20px', borderRadius: 10,
+                    background: 'rgba(250,220,220,0.05)',
+                    border: '1px solid rgba(250,220,220,0.12)',
+                    color: '#9b8270', fontSize: 12.5, textAlign: 'center',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                  ✓ AI Engine ready — upload your resume to analyze
+                </motion.div>
+              )}
 
               {/* Error */}
               {error && (
