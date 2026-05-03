@@ -4,11 +4,9 @@ export function startKeepAlive() {
   const ping = async () => {
     try {
       await fetch(BACKEND_URL)
-      console.log('✅ Backend alive')
-    } catch {
-      // silent
-    }
+    } catch { }
   }
+  // Ping every 5 minutes to prevent sleep
   ping()
-  setInterval(ping, 8 * 60 * 1000)
+  setInterval(ping, 5 * 60 * 1000)
 }
