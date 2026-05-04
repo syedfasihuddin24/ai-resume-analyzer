@@ -7,7 +7,6 @@ import { Brain, ArrowLeft, Briefcase } from 'lucide-react'
 import UploadZone from '../components/upload/UploadZone'
 import AnalysisResults from '../components/dashboard/AnalysisResults'
 import LoadingAnalysis from '../components/dashboard/LoadingAnalysis'
-import { analyzeResume } from '../services/api'
 
 const P = {
   rose:  '#fadcdc',
