@@ -26,8 +26,8 @@ A full-stack AI-powered web application that analyzes resumes, calculates ATS sc
 - Recharts
 
 ### Backend
-- FastAPI
-- Python
+- FastAPI + Uvicorn
+- Python 3.11+
 
 ### AI / NLP
 - spaCy
@@ -51,6 +51,11 @@ A full-stack AI-powered web application that analyzes resumes, calculates ATS sc
 
 ## ⚙️ Installation
 
+### Prerequisites
+- **Node.js** v18+
+- **Python 3.11+** (Python 3.13 also supported)
+- **Anaconda / Miniconda** (recommended for managing Python)
+
 ### 1. Clone repo
 ```bash
 git clone https://github.com/syedfasihuddin24/ai-resume-analyzer.git
@@ -63,25 +68,47 @@ cd frontend
 npm install
 npm run dev
 ```
+Frontend runs at → **http://localhost:5173**
 
 ### 3. Backend Setup
+
+#### ✅ Option A — Use the start script (recommended)
+```bash
+chmod +x backend/start.sh
+./backend/start.sh
+```
+This will automatically:
+- Create a fresh virtual environment
+- Install all dependencies
+- Download the spaCy language model
+- Start the server on port 8000
+
+#### 🔧 Option B — Manual setup
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate (Windows)
+
+# Use Python 3.11 explicitly (avoids compatibility issues)
+/opt/anaconda3/bin/python3 -m venv venv   # macOS with Anaconda
+# OR: python3.11 -m venv venv             # if python3.11 is in PATH
+
+source venv/bin/activate          # macOS/Linux
+# OR: venv\Scripts\activate       # Windows
 
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8000
 ```
+Backend runs at → **http://localhost:8000**
+
+> ⚠️ **Important:** Both the frontend and backend must be running simultaneously in **separate terminals**.
 
 ---
 
 ## 🌐 Deployment
 
-- Frontend → Vercel  
-- Backend → Render  
+- Frontend → Vercel
+- Backend → Render
 
 ---
 
@@ -100,6 +127,24 @@ POST /api/resume/report
 ### Health Check
 ```
 GET /api/health
+```
+
+---
+
+## 🛠️ Troubleshooting
+
+### `zsh: command not found: uvicorn`
+Your virtual environment is not activated or is broken. Use `start.sh` (Option A above) to auto-fix this.
+
+### `Failed to fetch` error in the browser
+The backend server is not running. Start it using `start.sh` or the manual steps above.
+
+### `blis` / `spacy` fails to build on Python 3.13
+Use Python 3.11 via conda:
+```bash
+conda create -n resumeai python=3.11 -y
+conda activate resumeai
+pip install -r backend/requirements.txt
 ```
 
 ---
