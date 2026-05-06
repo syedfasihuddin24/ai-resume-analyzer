@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { RefreshCw, Download, TrendingUp, Shield, Target, Zap, AlertTriangle, CheckCircle, Briefcase, Star, Award } from 'lucide-react'
 import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts'
+import { downloadReport } from '../../services/api'
 
 const P = {
   rose:  '#fadcdc',
@@ -174,20 +175,15 @@ export default function AnalysisResults({ results, onReset }) {
 
   const handleDownload = async () => {
     try {
-      const res = await fetch('https://resumeai-backend-my56.onrender.com/api/resume/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(results),
-      })
-      const blob = await res.blob()
+      const blob = await downloadReport(results)
       const url  = URL.createObjectURL(blob)
       const a    = document.createElement('a')
       a.href     = url
       a.download = `ResumeAI_${candidate_name.replace(/ /g, '_')}_Report.pdf`
       a.click()
       URL.revokeObjectURL(url)
-    } catch {
-      alert('Report download failed. Please try again.')
+    } catch (err) {
+      alert(`Report download failed: ${err.message}`)
     }
   }
 
