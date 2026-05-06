@@ -1,4 +1,7 @@
-const BASE_URL = 'https://resumeai-backend-my56.onrender.com/api'
+// Use localhost for development, production URL for production
+const BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-production-api.com/api'  // Replace with your actual production URL
+  : 'http://localhost:8000/api'
 
 // Pre-warm the backend as soon as possible
 export async function warmUpBackend() {
